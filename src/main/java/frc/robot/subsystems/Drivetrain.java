@@ -261,19 +261,19 @@ public class Drivetrain extends SubsystemBase {
 
   //Plan a path to node
   public PathPlannerTrajectory getTrajectoryToPoint(Integer node) {
-    SmartDashboard.putString("Error", setOdometry(getEstimatedGlobalPose(getFieldPosition())).toString());
-      var bestTagId = results.getBestTarget().getFiducialId();
-      var tagPose = AprilTagList.get(bestTagId).pose.toPose2d();
-      var pos = getFieldPosition();
-      var offsetX = 0.0;
-      // tagPose = Constants.AprilTagFieldLayouts.TagId1.pose.toPose2d();
-      if (node == 1) {
-        offsetX = -kNodeOffset;
-      } else if (node == 3) {
-        offsetX = kNodeOffset;
-      } else {
-        offsetX = 0;
-      }
+    SmartDashboard.putString("Error", setOdometry(getRobotPoisitionFromTag(results)).toString());
+    var bestTagId = results.getBestTarget().getFiducialId();
+    var tagPose = AprilTagList.get(bestTagId).pose.toPose2d();
+    var pos = getFieldPosition();
+    var offsetX = 0.0;
+    // tagPose = Constants.AprilTagFieldLayouts.TagId1.pose.toPose2d();
+    if (node == 1) {
+      offsetX = -kNodeOffset;
+    } else if (node == 3) {
+      offsetX = kNodeOffset;
+    } else {
+      offsetX = 0;
+    }
 
     PathPlannerTrajectory trajectoryToNode = PathPlanner.generatePath(
       new PathConstraints(4, 3), 
@@ -295,8 +295,8 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
-  public Pose2d getRobotPoisitionFromTag( PhotonPipelineResult result ) {
-    var tag = result.targets.get(0);
+  public Pose2d getRobotPoisitionFromTag( PhotonPipelineResult photonResult ) {
+    var tag = photonResult.targets.get(0);
     Pose3d tagPose = AprilTagList.get(tag.getFiducialId() - 1).pose;
     Transform3d targetToCamera = tag.getBestCameraToTarget().inverse();
     Pose3d camPose = tagPose.transformBy(targetToCamera);
