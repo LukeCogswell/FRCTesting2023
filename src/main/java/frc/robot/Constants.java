@@ -45,9 +45,9 @@ public final class Constants {
     public static final double kWheelDiameterMeters = 0.10033; // 4 inches - diameter of the wheels
     public static final double kInchesToMeters = 39.37;
 
-    public static final double kCameraOffsetX = 15;
+    public static final double kCameraOffsetX = 15 / kInchesToMeters;
     public static final double kCameraOffsetY = 0;
-    public static final double kCameraOffsetZ = 15;
+    public static final double kCameraOffsetZ = 15 / kInchesToMeters;
 
     public static final double kHybridNodeDepth = 16 / kInchesToMeters;
     public static final double kNodeOffset = 20.25 / kInchesToMeters;

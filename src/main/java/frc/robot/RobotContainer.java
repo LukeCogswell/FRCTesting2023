@@ -5,9 +5,12 @@
 package frc.robot;
 
 import static frc.robot.Constants.OIConstants.*;
+
+import frc.robot.commands.AlignWithNode;
 import frc.robot.commands.BalanceRobotOnChargingStation;
 import frc.robot.commands.DriveWithJoysticks;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Drivetrain;
@@ -28,8 +31,6 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // Configure the trigger bindings
-    
     m_drivetrain.setDefaultCommand(
       new DriveWithJoysticks(
         m_drivetrain, 
@@ -42,9 +43,8 @@ public class RobotContainer {
         m_driverController.y(), 
         m_driverController.b()
         )
-      // new ModuleCalibration(m_drivetrain)
     );
-    // Configure the button bindings
+    // Configure the trigger bindings  
     configureBindings();
   }
 
@@ -61,11 +61,17 @@ public class RobotContainer {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
     // new Trigger(m_exampleSubsystem::exampleCondition)
     //     .onTrue(new ExampleCommand(m_exampleSubsystem));
-    m_driverController.povDown().whileTrue(new BalanceRobotOnChargingStation(m_drivetrain, () -> m_driverController.getLeftTriggerAxis()));
+    m_driverController.leftTrigger().whileTrue(new BalanceRobotOnChargingStation(m_drivetrain, () -> m_driverController.getLeftTriggerAxis()));
 
-    m_driverController.povUpLeft().whileTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(1)));
-    m_driverController.povUp().whileTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(2)));
-    m_driverController.povUpRight().whileTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(3)));
+    m_driverController.povDown().onTrue(new InstantCommand(() -> m_drivetrain.updateOdometryIfTag()));
+
+    m_driverController.povLeft().whileTrue(new AlignWithNode(m_drivetrain, 1));
+    m_driverController.povUp().whileTrue(new AlignWithNode(m_drivetrain, 2));
+    m_driverController.povRight().whileTrue(new AlignWithNode(m_drivetrain, 3));
+    
+    // m_driverController.povLeft().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(1)));
+    // m_driverController.povUp().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(2)));
+    // m_driverController.povRight().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(3)));
     
     // m_driverController.povDown().whileTrue(m_drivetrain.drive(0, (1 - m_driverController.getRightTriggerAxis()), 0, false));
     // m_driverController.povUp().whileTrue(m_drivetrain.drive(0, -(1 - m_driverController.getRightTriggerAxis()), 0, false));
