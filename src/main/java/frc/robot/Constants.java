@@ -12,6 +12,7 @@ import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import static frc.robot.Constants.MeasurementConstants.kInchesToMeters;
@@ -60,7 +61,7 @@ public final class Constants {
     public static final double kMaxSpeedMetersPerSecond = 5880 / 60.0 *
       SwerveModuleConstants.kDriveReduction *
       MeasurementConstants.kWheelDiameterMeters * Math.PI; // ~ 4.6 m/s
-      public static final double kMaxAccelerationMetersPerSecondSquared = kMaxSpeedMetersPerSecond / 60;
+    public static final double kMaxAccelerationMetersPerSecondSquared = kMaxSpeedMetersPerSecond / 60;
     public static final double kMaxAngularSpeedRadiansPerSecond = kMaxSpeedMetersPerSecond /
       Math.hypot(kModuleXOffsetMeters / 2.0, kModuleYOffsetMeters / 2.0);
   }

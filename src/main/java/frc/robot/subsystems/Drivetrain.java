@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -33,6 +34,7 @@ import static frc.robot.Constants.SwerveModuleConstants.PID.*;
 import java.util.ArrayList;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ObjectUtils.Null;
 import org.photonvision.PhotonCamera;
 import org.photonvision.RobotPoseEstimator;
 import org.photonvision.RobotPoseEstimator.PoseStrategy;
@@ -158,11 +160,11 @@ public class Drivetrain extends SubsystemBase {
     odometer.resetPosition(getGyroRotation2d(), getModulePositions(), new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
   }
 
-  public Pose2d setOdometry(Pair<Pose2d, Double> pose) {
-    var errorX = odometer.getPoseMeters().getX() - pose.getFirst().getX();
-    var errorY = odometer.getPoseMeters().getY() - pose.getFirst().getY();
+  public Pose2d setOdometry(Pose2d pose) {
+    var errorX = odometer.getPoseMeters().getX() - pose.getX();
+    var errorY = odometer.getPoseMeters().getY() - pose.getY();
     var error = new Pose2d(errorX, errorY, new Rotation2d());
-    odometer.resetPosition(getGyroRotation2d(), getModulePositions(), pose.getFirst());
+    odometer.resetPosition(getGyroRotation2d(), getModulePositions(), pose);
     return error;
   }
 
@@ -293,4 +295,13 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
+  public Pose2d getRobotPoisitionFromTag( PhotonPipelineResult result ) {
+    var tag = result.targets.get(0);
+    Pose3d tagPose = AprilTagList.get(tag.getFiducialId() - 1).pose;
+    Transform3d targetToCamera = tag.getBestCameraToTarget().inverse();
+    Pose3d camPose = tagPose.transformBy(targetToCamera);
+    Pose2d robotPose = new Pose3d(camPose.getX() - kCameraOffsetX, camPose.getY() - kCameraOffsetY, camPose.getZ() - kCameraOffsetZ, camPose.getRotation()).toPose2d();
+
+    return robotPose;
+  }
 }
