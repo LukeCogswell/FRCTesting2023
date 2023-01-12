@@ -18,6 +18,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -47,7 +49,7 @@ public class Drivetrain extends SubsystemBase {
   private SwerveModule m_frontRight;
   private SwerveModule m_backLeft;
   private SwerveModule m_backRight;
-  public PhotonPipelineResult results;
+  NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
 
   private SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
     new Translation2d(kModuleXOffsetMeters, kModuleYOffsetMeters),
@@ -70,14 +72,8 @@ public class Drivetrain extends SubsystemBase {
         // Add kinematics to ensure max speed is actually obeyed
         .setKinematics(m_kinematics);
       
-  public PhotonCamera photonCamera = new PhotonCamera("gloworm");
   // public RobotPoseEstimator poseEstimator;
   public Drivetrain() {
-    var robotToCam = new Transform3d(new Translation3d(kCameraOffsetX, kCameraOffsetY, kCameraOffsetZ), new Rotation3d(0, 0, 0));
-    var camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-    camList.add(new Pair<PhotonCamera,Transform3d>(photonCamera, robotToCam));
-    // poseEstimator = new RobotPoseEstimator(AprilTagFullFieldLayout, PoseStrategy.LOWEST_AMBIGUITY, camList);
-    
     
     m_frontLeft = new SwerveModule(
       kFrontLeftDriveMotorID, 
@@ -228,7 +224,6 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("GyroRotation", getNavxYaw());
     SmartDashboard.putNumber("Time", Timer.getFPGATimestamp());
     SmartDashboard.putString("Position", odometer.getPoseMeters().toString());
-    results = photonCamera.getLatestResult();
   }
   
   public void updateOdometryIfTag() {
@@ -237,129 +232,12 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
-  public Command getCommandForTrajectory(PathPlannerTrajectory trajectory) {
-    xController = new PIDController(kDriveP, 0, 0);
-    yController = new PIDController(kDriveP, 0, 0);
-    thetaController = new PIDController(kTurnP, 0, 0); //Kp value, Ki=0, Kd=0
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    // setFieldPosition(trajectory.getInitialHolonomicPose());
-
-    PPSwerveControllerCommand swerveControllerCommand = new PPSwerveControllerCommand(
-      trajectory,
-      this::getFieldPosition,
-      m_kinematics,
-      xController,
-      yController,
-      thetaController,
-      this::setModuleStates,
-      this);
-    return swerveControllerCommand.andThen(() -> stop());
-  }
-
-  //Plan a path to node
-  public PathPlannerTrajectory getTrajectoryToPoint(Integer node) {
-    results = photonCamera.getLatestResult();
-    if (!results.hasTargets()) {
-      PathPlannerTrajectory noTrajectory = PathPlanner.generatePath(
-      new PathConstraints(0.2, 0.1), 
-       // position, heading(direction of travel), holonomic rotation
-      new PathPoint(odometer.getPoseMeters().getTranslation(), new Rotation2d(-getNavxPitch()), new Rotation2d(-getNavxPitch())),
-      new PathPoint(odometer.getPoseMeters().getTranslation(), new Rotation2d(-getNavxPitch()), new Rotation2d(-getNavxPitch())));
-      SmartDashboard.putString("NoTrajectoryPose", odometer.getPoseMeters().getTranslation().toString());
-      return noTrajectory;
-    }
-    // SmartDashboard.putString("Error", setOdometry(getEstimatedGlobalPose(getFieldPosition())).toString());
-      var bestTagId = results.getBestTarget().getFiducialId();
-      var tagPose = AprilTagList.get(bestTagId).pose.toPose2d();
-      var pos = getFieldPosition();
-      var offsetY = 0.0;
-      // tagPose = Constants.AprilTagFieldLayouts.TagId1.pose.toPose2d();
-      if (node == 1) {
-        offsetY = -kNodeOffset;
-      } else if (node == 3) {
-        offsetY = kNodeOffset;
-      } else {
-        offsetY = 0;
-      }
-
-    PathPlannerTrajectory trajectoryToNode = PathPlanner.generatePath(
-      new PathConstraints(1, 1), 
-      new PathPoint(pos.getTranslation(), Rotation2d.fromDegrees(-getNavxPitch()), Rotation2d.fromDegrees((-getNavxPitch()))), // position, heading(direction of travel), holonomic rotation
-      new PathPoint(new Translation2d(14, 1.07), Rotation2d.fromDegrees(-getNavxPitch()), Rotation2d.fromDegrees((-getNavxPitch())))
-      // new PathPoint(new Translation2d(tagPose.getX() -kHybridNodeDepth - 0.7, tagPose.getY() + offsetY), Rotation2d.fromDegrees(90), Rotation2d.fromDegrees(90))); // position, heading(direction of travel), holonomic rotation
-      ); // position, heading(direction of travel), holonomic rotation
-    return trajectoryToNode;
-  }
 
   ///**********VISION SECTION *************/
 
-  // public Pose2d getRobotPoseFromAprilTag() {
-  //   var tag = photonCamera.getLatestResult().getBestTarget();
-  //   var tagFieldPos = Constants.AprilTagFieldLayouts.AprilTagList.get(tag.getFiducialId() - 1);
-  //   var tagPos = tag.getBestCameraToTarget();
-    
-  //   var yRobotToCamera = (15 / kInchesToMeters) * Math.sin(-getNavxPitch()*(Math.PI/180));
-  //   SmartDashboard.putNumber("offset Y from robot to camera m", yRobotToCamera);
-    
-  //   var xRobotToCamera = (15 / kInchesToMeters) * Math.cos(-getNavxPitch()*(Math.PI/180));
-  //   SmartDashboard.putNumber("offset X from robot to camera m", xRobotToCamera);
-    
-  //   var hypoteneuse = Math.sqrt( (tagPos.getX() * tagPos.getX()) + (tagPos.getY() * tagPos.getY()));
-  //   SmartDashboard.putNumber("Hypoteneuse m", hypoteneuse);
-
-  //   var xRobotToTag = hypoteneuse * Math.cos((getNavxYaw() - tag.getYaw()) * (Math.PI / 180));
-  //   SmartDashboard.putNumber("X OFFSET ROBOT TO TAG m", xRobotToTag);
-    
-  //   var yRobotToTag = Math.sqrt((hypoteneuse * hypoteneuse) - (xRobotToTag * xRobotToTag));
-  //   // var yRobotToTag = hypoteneuse * Math.sin((getNavxYaw() - tag.getYaw()) * (Math.PI / 180));
-
-  //   SmartDashboard.putNumber("Y OFFSET ROBOT TO TAG m", yRobotToTag);
-  //   var offsetY = 0.0;
-  //   if (tag.getYaw() > 0) {
-  //     offsetY = yRobotToCamera + yRobotToTag;
-  //   } else {
-  //     offsetY = yRobotToCamera - yRobotToTag;
-  //   }
-  //   var offsetX = xRobotToCamera + xRobotToTag;
-  //   // var offsetX = (15 / kInchesToMeters) * Math.sin(-getNavxPitch()*(Math.PI/180))
-  //   // + Math.sqrt(Math.pow(tagPos.getX(), 2) + Math.pow(tagPos.getY(), 2)) 
-  //   // //  * Math.cos(tagRot * Math.PI/180);
-  //   // * Math.cos((getNavxYaw() + tag.getYaw()) * (Math.PI / 180));
-    
-  //   // var offsetY = (15 / kInchesToMeters) * Math.cos(-getNavxPitch()*(Math.PI/180))
-  //   // + Math.sqrt(Math.pow(tagPos.getX(), 2) + Math.pow(tagPos.getY(), 2)) 
-  //   // // * Math.sin(tagRot * Math.PI/180);
-  //   // * Math.sin((getNavxYaw() + tag.getYaw()) * (Math.PI / 180));
-  //   if (tag.getFiducialId() < 5) {
-  //     offsetX *= -1;
-  //     offsetY *= -1;
-  //   }
-  //   SmartDashboard.putNumber("X OFFSET", offsetX);
-  //   SmartDashboard.putNumber("Y OFFSET", offsetY);
-  //   var robotPos = new Pose2d(tagFieldPos.pose.getX() + offsetX, tagFieldPos.pose.getY() + offsetY, new Rotation2d(0)/*new Rotation2d(getNavxYaw() * Math.PI / 180)*/);
-  //   SmartDashboard.putString("Field Pose", robotPos.toString());
-  //   return robotPos;
-    
-
-
-  //   // Camera to AprilTag field Y Offset = sqrt(x2 + y2)Sin()
-  //   // Camera to AprilTag field x offset = sqrt(x2 + y2)Cos()
-  //   // Camera To Robot field x offset = 15”Sin(-Pitch)
-  //   // Camera To Robot field y offset =  15”Cos(-Pitch)
-    
-  // }
-
-  private Pose2d getRobotPoseFromAprilTag() {
-    var tag = results.getBestTarget();
-    var tagFieldPos = Constants.AprilTagFieldLayouts.AprilTagList.get(tag.getFiducialId() - 1);
-    var tagpos = tag.getBestCameraToTarget();
-    var C = tagpos.getY() * Math.tan(getNavxYaw());
-    var offsetH = 15 / kInchesToMeters + tagpos.getX() + C;
-    var offsetX = offsetH * Math.cos(getNavxYaw());
-    var offsetY = offsetH * Math.sin(getNavxYaw()) - Math.sin(getNavxYaw()) / tagpos.getY();
-    var robotPose = new Pose2d(tagFieldPos.pose.getX() + offsetX, tagFieldPos.pose.getY() + offsetY, new Rotation2d(0)/*new Rotation2d(getNavxYaw() * Math.PI / 180)*/);
-    return robotPose;
+  public Pose2d getRobotPoseFromAprilTag() {
+    return limelightTable.getEntry("botPose").getValue();
   }
 
 }

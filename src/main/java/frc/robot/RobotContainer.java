@@ -9,11 +9,13 @@ import static frc.robot.Constants.OIConstants.*;
 import frc.robot.commands.AlignWithNode;
 import frc.robot.commands.BalanceRobotOnChargingStation;
 import frc.robot.commands.DriveWithJoysticks;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LEDs;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -24,10 +26,12 @@ import frc.robot.subsystems.Drivetrain;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Drivetrain m_drivetrain = new Drivetrain();
+  private final LEDs m_LEDs = new LEDs();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
       new CommandXboxController(kDriverControllerPort);
+  private final CommandXboxController m_operatorController = new CommandXboxController(1);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -63,12 +67,20 @@ public class RobotContainer {
     //     .onTrue(new ExampleCommand(m_exampleSubsystem));
     m_driverController.leftTrigger().whileTrue(new BalanceRobotOnChargingStation(m_drivetrain, () -> m_driverController.getLeftTriggerAxis()));
 
-    m_driverController.povDown().onTrue(new InstantCommand(() -> m_drivetrain.updateOdometryIfTag()));
+    // m_driverController.povDown().onTrue(new InstantCommand(() -> m_drivetrain.updateOdometryIfTag()));
 
-    m_driverController.povLeft().whileTrue(new AlignWithNode(m_drivetrain, 1));
-    m_driverController.povUp().whileTrue(new AlignWithNode(m_drivetrain, 2));
-    m_driverController.povRight().whileTrue(new AlignWithNode(m_drivetrain, 3));
+    // m_driverController.povLeft().whileTrue(new AlignWithNode(m_drivetrain, 1));
+    // m_driverController.povUp().whileTrue(new AlignWithNode(m_drivetrain, 2));
+    // m_driverController.povRight().whileTrue(new AlignWithNode(m_drivetrain, 3));
     
+    m_driverController.leftBumper().onTrue(new InstantCommand(() -> m_LEDs.setLEDS(Color.kYellow)));
+    m_driverController.rightBumper().onTrue(new InstantCommand(() -> m_LEDs.setLEDS(Color.kPurple)));
+    
+    m_driverController.leftBumper().onFalse(new InstantCommand(() -> m_LEDs.LEDsOff()));
+    m_driverController.rightBumper().onFalse(new InstantCommand(() -> m_LEDs.LEDsOff()));
+
+    m_driverController.start().onTrue(new InstantCommand(() -> m_LEDs.toggleAmbulance()));
+
     // m_driverController.povLeft().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(1)));
     // m_driverController.povUp().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(2)));
     // m_driverController.povRight().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(3)));
