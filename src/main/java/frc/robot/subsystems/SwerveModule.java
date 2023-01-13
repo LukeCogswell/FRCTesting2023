@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.SwerveModuleConstants.*;
 import static frc.robot.Constants.SwerveModuleConstants.PID.*;
 import static frc.robot.Constants.MeasurementConstants.*;
+import static frc.robot.Constants.CANConstants;
 
 public class SwerveModule extends SubsystemBase {
   /** Creates a new SwerveModule. */
@@ -34,6 +35,15 @@ public class SwerveModule extends SubsystemBase {
 
   private final double m_steerEncoderOffset;
 
+  /**Swerve Module class that contains the drive and steer motors, along with their encoders
+   * 
+   * IDs found in {@link CANConstants}
+   * 
+   * @param driveMotorID - CAN ID of the drive motor
+   * @param steerMotorID - CAN ID of the steer motor
+   * @param steerEncoderID - CAN ID of the encoder
+   * @param steerEncoderOffset
+   */
   public SwerveModule(int driveMotorID, int steerMotorID, int steerEncoderID, double steerEncoderOffset) {
     m_steerEncoderOffset = steerEncoderOffset;
     
