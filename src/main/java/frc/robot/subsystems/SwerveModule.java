@@ -36,7 +36,7 @@ public class SwerveModule extends SubsystemBase {
   private final double m_steerEncoderOffset;
 
   /**Swerve Module class that contains the drive and steer motors, along with their encoders
-   * 
+   * <p>
    * IDs found in {@link CANConstants}
    * 
    * @param driveMotorID - CAN ID of the drive motor
