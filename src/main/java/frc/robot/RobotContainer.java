@@ -6,6 +6,7 @@ package frc.robot;
 
 import static frc.robot.Constants.OIConstants.*;
 
+import frc.robot.commands.AimAtNode;
 import frc.robot.commands.AlignWithNode;
 import frc.robot.commands.BalanceRobotOnChargingStation;
 import frc.robot.commands.DriveWithJoysticks;
@@ -31,7 +32,6 @@ public class RobotContainer {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
       new CommandXboxController(kDriverControllerPort);
-  private final CommandXboxController m_operatorController = new CommandXboxController(1);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -67,11 +67,11 @@ public class RobotContainer {
     //     .onTrue(new ExampleCommand(m_exampleSubsystem));
     m_driverController.leftTrigger().whileTrue(new BalanceRobotOnChargingStation(m_drivetrain, () -> m_driverController.getLeftTriggerAxis()));
 
-    // m_driverController.povDown().onTrue(new InstantCommand(() -> m_drivetrain.updateOdometryIfTag()));
+    m_driverController.povDown().onTrue(new InstantCommand(() -> m_drivetrain.updateOdometryIfTag()));
 
-    // m_driverController.povLeft().whileTrue(new AlignWithNode(m_drivetrain, 1));
-    // m_driverController.povUp().whileTrue(new AlignWithNode(m_drivetrain, 2));
-    // m_driverController.povRight().whileTrue(new AlignWithNode(m_drivetrain, 3));
+    m_driverController.povLeft().whileTrue(new AlignWithNode(m_drivetrain, 1).andThen(new AimAtNode(m_drivetrain)));
+    m_driverController.povUp().whileTrue(new AlignWithNode(m_drivetrain, 2).andThen(new AimAtNode(m_drivetrain)));
+    m_driverController.povRight().whileTrue(new AlignWithNode(m_drivetrain, 3).andThen(new AimAtNode(m_drivetrain)));
     
     m_driverController.leftBumper().onTrue(new InstantCommand(() -> m_LEDs.setLEDS(Color.kYellow)));
     m_driverController.rightBumper().onTrue(new InstantCommand(() -> m_LEDs.setLEDS(Color.kPurple)));
@@ -80,6 +80,9 @@ public class RobotContainer {
     m_driverController.rightBumper().onFalse(new InstantCommand(() -> m_LEDs.LEDsOff()));
 
     m_driverController.start().onTrue(new InstantCommand(() -> m_LEDs.toggleAmbulance()));
+
+    m_driverController.back().onTrue(new InstantCommand(() -> m_drivetrain.limelightToTapeMode()));
+    m_driverController.back().onFalse(new InstantCommand(() -> m_drivetrain.limelightToTagMode()));
 
     // m_driverController.povLeft().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(1)));
     // m_driverController.povUp().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(2)));

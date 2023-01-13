@@ -4,11 +4,8 @@
 
 package frc.robot.commands;
 
-import org.photonvision.targeting.PhotonPipelineResult;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.Drivetrain;
@@ -17,14 +14,12 @@ import static frc.robot.Constants.SwerveModuleConstants.PID.*;
 
 public class AlignWithNode extends CommandBase {
   /** Creates a new AlignWithNode. */
-  private PhotonPipelineResult results;
   private Drivetrain m_drivetrain;
   private Integer node;
-  private double targetXPos;
   private double targetYPos;
   private PIDController yController = new PIDController(kDriveP, kDriveI, kDriveD);
   private PIDController xController = new PIDController(kDriveP, kDriveI, kDriveD);
-  private PIDController turnController = new PIDController(kSteerP, kSteerI, kSteerD);
+  private PIDController turnController = new PIDController(0.05, kSteerI, kSteerD);
 
 
   public AlignWithNode(Drivetrain drivetrain, Integer whichNode) {
@@ -38,13 +33,26 @@ public class AlignWithNode extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    if (m_drivetrain.botPoseSub.get().length != 6) {
+      System.out.println("STOPPINGGGGGG");
+      this.cancel();
+    } else {
+    m_drivetrain.updateOdometryIfTag();
+    m_drivetrain.limelightToTagMode();
     turnController.enableContinuousInput(-180, 180);
-    results = m_drivetrain.photonCamera.getLatestResult();
-    if (results.hasTargets()) {
-    var tag = results.getBestTarget();
-    var tagPose = Constants.AprilTagFieldLayouts.AprilTagList.get(tag.getFiducialId() - 1).pose;
+    turnController.setTolerance(2);
+    xController.setTolerance(0.1);
+    yController.setTolerance(0.1);
+    if (node == 2) {
+      m_drivetrain.limelightToTagMode();
+    } else {
+      m_drivetrain.limelightToTapeMode();
+    }
+    if (m_drivetrain.getTV() == 1) {
+    var tagID = m_drivetrain.getTID();
+    var tagPose = Constants.AprilTagFieldLayouts.AprilTagList.get(tagID - 1).pose;
     var offsetY = 0.0;
-    if (tag.getFiducialId() < 5) {
+    if (tagID < 5) {
       xController.setSetpoint(14.5);
       turnController.setSetpoint(0);
       if (node == 3 ) {
@@ -63,11 +71,10 @@ public class AlignWithNode extends CommandBase {
       }
       targetYPos = tagPose.getY() - offsetY;
     }
-    SmartDashboard.putNumber("Y Alignment Offset", offsetY);
-    SmartDashboard.putNumber("Target Y Pos", targetYPos);
-    xController.setSetpoint(14.4);
     yController.setSetpoint(targetYPos);
-    }
+    } else {
+      this.cancel();
+    }}
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -76,11 +83,10 @@ public class AlignWithNode extends CommandBase {
     var xDrive = xController.calculate(m_drivetrain.getFieldPosition().getX());
     var yDrive = yController.calculate(m_drivetrain.getFieldPosition().getY());
     var rot = turnController.calculate(m_drivetrain.getFieldPosition().getRotation().getDegrees());
-    SmartDashboard.putString("XYtheta", xDrive+" "+yDrive+" "+rot);
-    rot = MathUtil.clamp(rot, -0.4, 0.4);
-    xDrive = MathUtil.clamp(xDrive, -0.4, 0.4);
-    yDrive = MathUtil.clamp(yDrive, -0.4, 0.4);
-    m_drivetrain.drive(xDrive, yDrive, rot, false);
+    rot = MathUtil.clamp(rot, -1, 1);
+    xDrive = MathUtil.clamp(xDrive, -1.4, 1.4);
+    yDrive = MathUtil.clamp(yDrive, -1.4, 1.4);
+    m_drivetrain.drive(xDrive, yDrive, rot, true);
   }
 
   // Called once the command ends or is interrupted.
@@ -90,7 +96,7 @@ public class AlignWithNode extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    if (!results.hasTargets()) {
+    if (xController.atSetpoint() && yController.atSetpoint() && turnController.atSetpoint()) {
       return true;
     }
     return false;
