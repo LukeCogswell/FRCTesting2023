@@ -61,8 +61,14 @@ public class Drivetrain extends SubsystemBase {
       .setKinematics(m_kinematics);
 
   // public RobotPoseEstimator poseEstimator;
+
+  /** 
+   * Constructor creates 4 objects of the {@link SwerveModule} class. 
+   * The Drivetrain class is responsible for orienting and manipulating them to manuever the robot, 
+   * primarily through this class's drive method
+   */
   public Drivetrain() {
-    botPoseSub = limelightTable.getDoubleArrayTopic("botpose").subscribe(new double[]{});
+    // botPoseSub = limelightTable.getDoubleArrayTopic("botpose").subscribe(new double[]{});
 
     m_frontLeft = new SwerveModule(
         kFrontLeftDriveMotorID,
