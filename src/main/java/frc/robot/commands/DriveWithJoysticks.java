@@ -76,19 +76,12 @@ public class DriveWithJoysticks extends CommandBase {
   public void execute() {
 
     // Facing button setup
-    if(m_forwards.getAsBoolean()) {
-      m_toAngle = 0.0;
-      m_PIDcontrol = true;
-    } else if(m_left.getAsBoolean()) {
-      m_toAngle = -90.0;
-      m_PIDcontrol = true;
-    } else if(m_right.getAsBoolean()) {
-      m_toAngle = 90.0;
-      m_PIDcontrol = true;
-    } else if(m_backwards.getAsBoolean()) {
-      m_toAngle = 180.0;
-      m_PIDcontrol = true;
-    } else {
+    m_PIDcontrol = true;
+    if(m_forwards.getAsBoolean()) m_toAngle = 0.0;
+    else if(m_left.getAsBoolean()) m_toAngle = -90.0;
+    else if(m_right.getAsBoolean()) m_toAngle = 90.0;
+    else if(m_backwards.getAsBoolean()) m_toAngle = 180.0;
+    else {
       m_toAngle = 0.0;
       m_PIDcontrol = false;
     }
