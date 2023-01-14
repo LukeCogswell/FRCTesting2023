@@ -13,7 +13,6 @@ import static frc.robot.Constants.MeasurementConstants.*;
 import static frc.robot.Constants.SwerveModuleConstants.PID.*;
 
 public class AlignWithNode extends CommandBase {
-  /** Creates a new AlignWithNode. */
   private Drivetrain m_drivetrain;
   private Integer node;
   private double targetYPos;
@@ -21,6 +20,13 @@ public class AlignWithNode extends CommandBase {
   private PIDController xController = new PIDController(kDriveP, kDriveI, kDriveD);
   private PIDController turnController = new PIDController(0.05, kSteerI, kSteerD);
 
+  /**
+   * Looks for the nearest node April tag and takes a given node number and drive toward it.
+   * 
+   * @param drivetrain - the current {@link Drivetrain}
+   * @param whichNode - the desired node to travel to. 
+   * Integer values of 1, 2 and 3 are applicable, with 1 and 2 being cone nodes.
+   */
   public AlignWithNode(Drivetrain drivetrain, Integer whichNode) {
     node = whichNode;
     m_drivetrain = drivetrain;

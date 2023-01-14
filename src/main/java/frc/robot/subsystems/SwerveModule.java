@@ -140,6 +140,9 @@ public class SwerveModule extends SubsystemBase {
     return m_steerEncoder.getAbsolutePosition(); 
   }
 
+  /**
+   * completely stops both of the modules motors
+   */
   public void stop(){
     m_driveMotor.set(0);
     m_steerMotor.set(0);
