@@ -29,7 +29,7 @@ public class FollowTrajectoryWithEvents extends CommandBase {
     m_swerveDriveController = swerveDriveController;
     m_trajectoryName = trajectoryName;
     addRequirements(m_swerveDriveController);
-    m_events = Constants.getAutonomousEvents();
+    m_events = Constants.AUTO_EVENT_MAP;
   }
 
   // Called when the command is initially scheduled.

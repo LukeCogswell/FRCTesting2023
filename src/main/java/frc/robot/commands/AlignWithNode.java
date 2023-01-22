@@ -55,18 +55,18 @@ public class AlignWithNode extends CommandBase {
     if (tagID < 5) {
       xController.setSetpoint(14.5);
       turnController.setSetpoint(0);
-      if (node == 3 ) {
+      if (node == 1 ) {
         offsetY -= kNodeOffset; 
-      } else if (node == 1) {
+      } else if (node == 3) {
         offsetY += kNodeOffset;
       }
       targetYPos = tagPose.getY() + offsetY;
     } else {
       xController.setSetpoint(2);
       turnController.setSetpoint(180);
-      if (node == 1 ) {
+      if (node == 3 ) {
         offsetY -= kNodeOffset; 
-      } else if (node == 3) {
+      } else if (node == 1) {
         offsetY += kNodeOffset;
       }
       targetYPos = tagPose.getY() - offsetY;
@@ -80,6 +80,10 @@ public class AlignWithNode extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    // if (Timer.getFPGATimestamp() % 1 < 0.03){
+    //   m_drivetrain.updateOdometryIfTag();
+
+    // }
     var xDrive = xController.calculate(m_drivetrain.getFieldPosition().getX());
     var yDrive = yController.calculate(m_drivetrain.getFieldPosition().getY());
     var rot = turnController.calculate(m_drivetrain.getFieldPosition().getRotation().getDegrees());
@@ -91,7 +95,11 @@ public class AlignWithNode extends CommandBase {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    if (interrupted) {
+      m_drivetrain.limelightToTagMode();
+    }
+  }
 
   // Returns true when the command should end.
   @Override

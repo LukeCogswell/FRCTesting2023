@@ -46,6 +46,7 @@ public class SwerveModule extends SubsystemBase {
 
     setMotorSettings(m_driveMotor, kDriveMotorCurrentLimit);
     setMotorSettings(m_steerMotor, kSteerMotorCurrentLimit);
+    m_driveMotor.setOpenLoopRampRate(0.4);
 
     m_driveRelativeEncoder.setPositionConversionFactor(kDriveEncoderPositionConversionFactor); // Gives meters
     m_driveRelativeEncoder.setVelocityConversionFactor(kDriveEncoderPositionConversionFactor / 60.0); // Gives meters per second

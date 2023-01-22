@@ -17,7 +17,9 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -32,6 +34,7 @@ import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 public class Drivetrain extends SubsystemBase {
+  public Alliance teamColor;
   /** Creates a new SwerveSystem. */
   private SwerveModule m_frontLeft;
   private SwerveModule m_frontRight;
@@ -62,6 +65,7 @@ public class Drivetrain extends SubsystemBase {
 
   // public RobotPoseEstimator poseEstimator;
   public Drivetrain() {
+    teamColor = DriverStation.getAlliance();
     botPoseSub = limelightTable.getDoubleArrayTopic("botpose").subscribe(new double[]{});
 
     m_frontLeft = new SwerveModule(
@@ -262,7 +266,7 @@ public class Drivetrain extends SubsystemBase {
 
   public Pose2d getRobotPoseFromAprilTag() {
     var entry = limelightTable.getEntry("botpose").getDoubleArray(new double[]{});
-    var pose2d = new Pose2d(new Translation2d(entry[0], entry[1]), new Rotation2d(0));
+    var pose2d = new Pose2d(new Translation2d(entry[0] + 8.27, entry[1] + 4.01), new Rotation2d(0));
 
     return pose2d;
   }

@@ -8,6 +8,7 @@ import static frc.robot.Constants.OIConstants.*;
 
 import frc.robot.commands.AimAtNode;
 import frc.robot.commands.AlignWithNode;
+import frc.robot.commands.Autos;
 import frc.robot.commands.BalanceRobotOnChargingStation;
 import frc.robot.commands.DriveWithJoysticks;
 import edu.wpi.first.wpilibj.util.Color;
@@ -38,14 +39,11 @@ public class RobotContainer {
     m_drivetrain.setDefaultCommand(
       new DriveWithJoysticks(
         m_drivetrain, 
-        () -> m_driverController.getLeftX(), 
-        () -> m_driverController.getLeftY(), 
+        () -> -m_driverController.getLeftX(), 
+        () -> -m_driverController.getLeftY(), 
         () -> m_driverController.getRightX(), 
         () -> m_driverController.getRightTriggerAxis(), 
-        m_driverController.x(), 
-        m_driverController.a(), 
-        m_driverController.y(), 
-        m_driverController.b()
+        m_driverController.y()
         )
     );
     // Configure the trigger bindings  
@@ -62,9 +60,6 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    // new Trigger(m_exampleSubsystem::exampleCondition)
-    //     .onTrue(new ExampleCommand(m_exampleSubsystem));
     m_driverController.leftTrigger().whileTrue(new BalanceRobotOnChargingStation(m_drivetrain, () -> m_driverController.getLeftTriggerAxis()));
 
     m_driverController.povDown().onTrue(new InstantCommand(() -> m_drivetrain.updateOdometryIfTag()));
@@ -84,14 +79,6 @@ public class RobotContainer {
     m_driverController.back().onTrue(new InstantCommand(() -> m_drivetrain.limelightToTapeMode()));
     m_driverController.back().onFalse(new InstantCommand(() -> m_drivetrain.limelightToTagMode()));
 
-    // m_driverController.povLeft().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(1)));
-    // m_driverController.povUp().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(2)));
-    // m_driverController.povRight().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(3)));
-    
-    // m_driverController.povDown().whileTrue(m_drivetrain.drive(0, (1 - m_driverController.getRightTriggerAxis()), 0, false));
-    // m_driverController.povUp().whileTrue(m_drivetrain.drive(0, -(1 - m_driverController.getRightTriggerAxis()), 0, false));
-    // m_driverController.povLeft().whileTrue(m_drivetrain.drive(-(1 - m_driverController.getRightTriggerAxis()), 0, 0, false));
-    // m_driverController.povRight().whileTrue(m_drivetrain.drive((1 - m_driverController.getRightTriggerAxis()), 0, 0, false));
   }
 
   /**
@@ -100,8 +87,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    // return Autos.exampleAuto(m_exampleSubsystem);
-    return null;
+    return Autos.ThreeGPBalanceNonCC(m_drivetrain, m_LEDs);
   }
 }

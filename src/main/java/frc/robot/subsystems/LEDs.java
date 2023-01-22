@@ -13,11 +13,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class LEDs extends SubsystemBase {
   private AddressableLED m_led = new AddressableLED(9);
   private Boolean ambulanceMode = false;
-  private AddressableLEDBuffer m_ledBuffer = new AddressableLEDBuffer(16);
+  private AddressableLEDBuffer m_ledBuffer = new AddressableLEDBuffer(64);
   private Color[] ambulanceList = {Color.kRed, Color.kBlue, Color.kWhite};
   /** Creates a new LEDs. */
   public LEDs() {
-    m_led.setLength(16);
+    m_led.setLength(64);
   }
 
   @Override

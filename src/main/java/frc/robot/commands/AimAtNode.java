@@ -25,6 +25,9 @@ public class AimAtNode extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    if (m_drivetrain.getTV() == 0) {
+      this.cancel();
+    }
     rotController.setSetpoint(0);
     rotController.setTolerance(1);
   }
