@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.SwerveModuleConstants.*;
 import static frc.robot.Constants.SwerveModuleConstants.PID.*;
 import static frc.robot.Constants.MeasurementConstants.*;
+import static frc.robot.Constants.CANConstants;
 
 public class SwerveModule extends SubsystemBase {
   /** Creates a new SwerveModule. */
@@ -34,6 +35,16 @@ public class SwerveModule extends SubsystemBase {
 
   private final double m_steerEncoderOffset;
 
+  /**
+   * Swerve Module class that contains the drive and steer motors, along with their encoders
+   * <p>
+   * IDs found in {@link CANConstants}
+   * 
+   * @param driveMotorID - CAN ID of the drive motor
+   * @param steerMotorID - CAN ID of the steer motor
+   * @param steerEncoderID - CAN ID of the encoder
+   * @param steerEncoderOffset
+   */
   public SwerveModule(int driveMotorID, int steerMotorID, int steerEncoderID, double steerEncoderOffset) {
     m_steerEncoderOffset = steerEncoderOffset;
     
@@ -46,6 +57,7 @@ public class SwerveModule extends SubsystemBase {
 
     setMotorSettings(m_driveMotor, kDriveMotorCurrentLimit);
     setMotorSettings(m_steerMotor, kSteerMotorCurrentLimit);
+    m_driveMotor.setOpenLoopRampRate(0.4);
 
     m_driveRelativeEncoder.setPositionConversionFactor(kDriveEncoderPositionConversionFactor); // Gives meters
     m_driveRelativeEncoder.setVelocityConversionFactor(kDriveEncoderPositionConversionFactor / 60.0); // Gives meters per second
@@ -129,6 +141,9 @@ public class SwerveModule extends SubsystemBase {
     return m_steerEncoder.getAbsolutePosition(); 
   }
 
+  /**
+   * completely stops both of the modules motors
+   */
   public void stop(){
     m_driveMotor.set(0);
     m_steerMotor.set(0);

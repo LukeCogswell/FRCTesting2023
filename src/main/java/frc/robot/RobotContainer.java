@@ -6,14 +6,18 @@ package frc.robot;
 
 import static frc.robot.Constants.OIConstants.*;
 
+import frc.robot.commands.AimAtNode;
 import frc.robot.commands.AlignWithNode;
+import frc.robot.commands.Autos;
 import frc.robot.commands.BalanceRobotOnChargingStation;
 import frc.robot.commands.DriveWithJoysticks;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LEDs;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -24,6 +28,7 @@ import frc.robot.subsystems.Drivetrain;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Drivetrain m_drivetrain = new Drivetrain();
+  private final LEDs m_LEDs = new LEDs();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
@@ -34,14 +39,11 @@ public class RobotContainer {
     m_drivetrain.setDefaultCommand(
       new DriveWithJoysticks(
         m_drivetrain, 
-        () -> m_driverController.getLeftX(), 
-        () -> m_driverController.getLeftY(), 
+        () -> -m_driverController.getLeftX(), 
+        () -> -m_driverController.getLeftY(), 
         () -> m_driverController.getRightX(), 
         () -> m_driverController.getRightTriggerAxis(), 
-        m_driverController.x(), 
-        m_driverController.a(), 
-        m_driverController.y(), 
-        m_driverController.b()
+        m_driverController.y()
         )
     );
     // Configure the trigger bindings  
@@ -58,25 +60,25 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    // new Trigger(m_exampleSubsystem::exampleCondition)
-    //     .onTrue(new ExampleCommand(m_exampleSubsystem));
     m_driverController.leftTrigger().whileTrue(new BalanceRobotOnChargingStation(m_drivetrain, () -> m_driverController.getLeftTriggerAxis()));
 
     m_driverController.povDown().onTrue(new InstantCommand(() -> m_drivetrain.updateOdometryIfTag()));
 
-    m_driverController.povLeft().whileTrue(new AlignWithNode(m_drivetrain, 1));
-    m_driverController.povUp().whileTrue(new AlignWithNode(m_drivetrain, 2));
-    m_driverController.povRight().whileTrue(new AlignWithNode(m_drivetrain, 3));
+    m_driverController.povLeft().whileTrue(new AlignWithNode(m_drivetrain, 1).andThen(new AimAtNode(m_drivetrain)));
+    m_driverController.povUp().whileTrue(new AlignWithNode(m_drivetrain, 2).andThen(new AimAtNode(m_drivetrain)));
+    m_driverController.povRight().whileTrue(new AlignWithNode(m_drivetrain, 3).andThen(new AimAtNode(m_drivetrain)));
     
-    // m_driverController.povLeft().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(1)));
-    // m_driverController.povUp().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(2)));
-    // m_driverController.povRight().onTrue(m_drivetrain.getCommandForTrajectory(m_drivetrain.getTrajectoryToPoint(3)));
+    m_driverController.leftBumper().onTrue(new InstantCommand(() -> m_LEDs.setLEDS(Color.kYellow)));
+    m_driverController.rightBumper().onTrue(new InstantCommand(() -> m_LEDs.setLEDS(Color.kPurple)));
     
-    // m_driverController.povDown().whileTrue(m_drivetrain.drive(0, (1 - m_driverController.getRightTriggerAxis()), 0, false));
-    // m_driverController.povUp().whileTrue(m_drivetrain.drive(0, -(1 - m_driverController.getRightTriggerAxis()), 0, false));
-    // m_driverController.povLeft().whileTrue(m_drivetrain.drive(-(1 - m_driverController.getRightTriggerAxis()), 0, 0, false));
-    // m_driverController.povRight().whileTrue(m_drivetrain.drive((1 - m_driverController.getRightTriggerAxis()), 0, 0, false));
+    m_driverController.leftBumper().onFalse(new InstantCommand(() -> m_LEDs.LEDsOff()));
+    m_driverController.rightBumper().onFalse(new InstantCommand(() -> m_LEDs.LEDsOff()));
+
+    m_driverController.start().onTrue(new InstantCommand(() -> m_LEDs.toggleAmbulance()));
+
+    m_driverController.back().onTrue(new InstantCommand(() -> m_drivetrain.limelightToTapeMode()));
+    m_driverController.back().onFalse(new InstantCommand(() -> m_drivetrain.limelightToTagMode()));
+
   }
 
   /**
@@ -85,8 +87,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    // return Autos.exampleAuto(m_exampleSubsystem);
-    return null;
+    return Autos.ThreeGPBalanceNonCC(m_drivetrain, m_LEDs);
   }
 }

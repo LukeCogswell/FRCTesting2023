@@ -13,7 +13,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import static frc.robot.Constants.MeasurementConstants.kInchesToMeters;
 
 /**
@@ -53,9 +52,9 @@ public final class Constants {
     public static final double kNodeOffset = 20.25 / kInchesToMeters;
 
     public static final double kFrontLeftEncoderOffset = 165; // Must be degrees
-    public static final double kBackLeftEncoderOffset = 122; // Must be degrees
-    public static final double kFrontRightEncoderOffset = 96.5; // Must be degrees
-    public static final double kBackRightEncoderOffset = 260; // Must be degrees
+    public static final double kBackLeftEncoderOffset = 119.62;//122// Must be degrees
+    public static final double kFrontRightEncoderOffset = 96.33;//96.5 // Must be degrees
+    public static final double kBackRightEncoderOffset = 258.4;//260 // Must be degrees
 
     public static final double kMaxSpeedMetersPerSecond = 5880 / 60.0 *
       SwerveModuleConstants.kDriveReduction *
@@ -73,7 +72,7 @@ public final class Constants {
 
   public static final class SwerveModuleConstants {
     public static final double kSpeedMultiplier = 0.5; // limits robot speed
-    public static final double kDriveDeadband = 0.2;
+    public static final double kDriveDeadband = 0.1;
 
     public static final double kMaxVoltage = 12.0;
     public static final double kAccelerationSeconds = 0.5; // 0.5 seconds to reach full speed
@@ -96,7 +95,7 @@ public final class Constants {
       public static final double kDriveI = 0.0; // Used in pose control
       public static final double kDriveD = 0.0;
 
-      public static final double kTurnP = 0.5;
+      public static final double kTurnP = 0.1;
       public static final double kTurnI = 0.0; // Used in pose control
       public static final double kTurnD = 0.0;
 
@@ -131,12 +130,8 @@ public final class Constants {
         (MeasurementConstants.kWheelDiameterMeters * Math.PI) / kEncoderResolution;
   }
 
-  public static HashMap<String, Command> getAutonomousEvents() {
-    HashMap<String, Command> events = new HashMap<String, Command>();
-    // events.put("Event Name", new EventCommand());
-    events.put("PrintTest", new InstantCommand(() -> System.out.println("Test")));
-    return events;
-}
+  public static HashMap<String, Command> AUTO_EVENT_MAP = new HashMap<>();
+
 public static final class AprilTagFieldLayouts {
   private static final double kGridTagHeight = 18.22 / kInchesToMeters;
   private static final double kSubstationTagHeight = 27.38 / kInchesToMeters;

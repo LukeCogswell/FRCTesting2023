@@ -4,11 +4,8 @@
 
 package frc.robot.commands;
 
-import org.photonvision.targeting.PhotonPipelineResult;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.Drivetrain;
@@ -16,17 +13,20 @@ import static frc.robot.Constants.MeasurementConstants.*;
 import static frc.robot.Constants.SwerveModuleConstants.PID.*;
 
 public class AlignWithNode extends CommandBase {
-  /** Creates a new AlignWithNode. */
-  private PhotonPipelineResult results;
   private Drivetrain m_drivetrain;
   private Integer node;
-  private double targetXPos;
   private double targetYPos;
   private PIDController yController = new PIDController(kDriveP, kDriveI, kDriveD);
   private PIDController xController = new PIDController(kDriveP, kDriveI, kDriveD);
-  private PIDController turnController = new PIDController(kSteerP, kSteerI, kSteerD);
+  private PIDController turnController = new PIDController(0.05, kSteerI, kSteerD);
 
-
+  /**
+   * Looks for the nearest node April tag and takes a given node number and drive toward it.
+   * 
+   * @param drivetrain - the current {@link Drivetrain}
+   * @param whichNode - the desired node to travel to. 
+   * Integer values of 1, 2 and 3 are applicable, with 1 and 2 being cone nodes.
+   */
   public AlignWithNode(Drivetrain drivetrain, Integer whichNode) {
     node = whichNode;
     m_drivetrain = drivetrain;
@@ -38,59 +38,97 @@ public class AlignWithNode extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    if (m_drivetrain.botPoseSub.get().length != 6) {
+      System.out.println("STOPPINGGGGGG");
+      this.cancel();
+      return;
+    } 
+
+    m_drivetrain.updateOdometryIfTag();
+    m_drivetrain.limelightToTagMode();
     turnController.enableContinuousInput(-180, 180);
-    results = m_drivetrain.photonCamera.getLatestResult();
-    if (results.hasTargets()) {
-    var tag = results.getBestTarget();
-    var tagPose = Constants.AprilTagFieldLayouts.AprilTagList.get(tag.getFiducialId() - 1).pose;
-    var offsetY = 0.0;
-    if (tag.getFiducialId() < 5) {
+    turnController.setTolerance(2);
+    xController.setTolerance(0.1);
+    yController.setTolerance(0.1);
+
+    if (node == 2) m_drivetrain.limelightToTagMode();
+    else m_drivetrain.limelightToTapeMode();
+
+    if (m_drivetrain.getTV() == 0) {
+      this.cancel();
+      return;
+    }
+
+    var tagID = m_drivetrain.getTID();
+    var tagPose = Constants.AprilTagFieldLayouts.AprilTagList.get(tagID - 1).pose;
+    var offsetY = getYOffset();
+
+    if (tagID < 5) {
       xController.setSetpoint(14.5);
       turnController.setSetpoint(0);
-      if (node == 3 ) {
+      if (node == 1 ) {
         offsetY -= kNodeOffset; 
-      } else if (node == 1) {
+      } else if (node == 3) {
         offsetY += kNodeOffset;
       }
       targetYPos = tagPose.getY() + offsetY;
     } else {
       xController.setSetpoint(2);
       turnController.setSetpoint(180);
-      if (node == 1 ) {
+      if (node == 3 ) {
         offsetY -= kNodeOffset; 
-      } else if (node == 3) {
+      } else if (node == 1) {
         offsetY += kNodeOffset;
       }
       targetYPos = tagPose.getY() - offsetY;
     }
-    SmartDashboard.putNumber("Y Alignment Offset", offsetY);
-    SmartDashboard.putNumber("Target Y Pos", targetYPos);
-    xController.setSetpoint(14.4);
     yController.setSetpoint(targetYPos);
+  }
+
+  private double getYOffset() {
+    switch (node) {
+      case 1:
+        return kNodeOffset;
+      
+      case 2:
+        return 0.0;
+
+      case 3:
+        return -kNodeOffset;
+
+      default:
+        return 0.0;
     }
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    // if (Timer.getFPGATimestamp() % 1 < 0.03){
+    //   m_drivetrain.updateOdometryIfTag();
+
+    // }
     var xDrive = xController.calculate(m_drivetrain.getFieldPosition().getX());
     var yDrive = yController.calculate(m_drivetrain.getFieldPosition().getY());
     var rot = turnController.calculate(m_drivetrain.getFieldPosition().getRotation().getDegrees());
-    SmartDashboard.putString("XYtheta", xDrive+" "+yDrive+" "+rot);
-    rot = MathUtil.clamp(rot, -0.4, 0.4);
-    xDrive = MathUtil.clamp(xDrive, -0.4, 0.4);
-    yDrive = MathUtil.clamp(yDrive, -0.4, 0.4);
-    m_drivetrain.drive(xDrive, yDrive, rot, false);
+    rot = MathUtil.clamp(rot, -1, 1);
+    xDrive = MathUtil.clamp(xDrive, -1.4, 1.4);
+    yDrive = MathUtil.clamp(yDrive, -1.4, 1.4);
+    m_drivetrain.drive(xDrive, yDrive, rot, true);
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    if (interrupted) {
+      m_drivetrain.limelightToTagMode();
+    }
+  }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    if (!results.hasTargets()) {
+    if (xController.atSetpoint() && yController.atSetpoint() && turnController.atSetpoint()) {
       return true;
     }
     return false;

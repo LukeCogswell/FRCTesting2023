@@ -16,6 +16,8 @@ import frc.robot.subsystems.Drivetrain;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class DriveWithJoysticks extends CommandBase {
 
@@ -25,13 +27,9 @@ public class DriveWithJoysticks extends CommandBase {
   DoubleSupplier m_y;
   DoubleSupplier m_theta;
   DoubleSupplier m_precision;
+  Trigger m_faceForwards;
   
   boolean m_PIDcontrol;
-  
-  Trigger m_forwards;
-  Trigger m_left;
-  Trigger m_right;
-  Trigger m_backwards;
   
   private PIDController turnController = new PIDController(kTurnP, kTurnI, kTurnD);
   
@@ -46,50 +44,36 @@ public class DriveWithJoysticks extends CommandBase {
   private final SlewRateLimiter m_thetaLimiter = new SlewRateLimiter(1 / kAccelerationSeconds);
   /** Creates a new Drive. */
   public DriveWithJoysticks(
-      Drivetrain drivetrain, DoubleSupplier x, DoubleSupplier y, DoubleSupplier theta, DoubleSupplier precision, 
-      Trigger forwards, Trigger left, Trigger right, Trigger backwards
-      ) {
+      Drivetrain drivetrain, DoubleSupplier x, DoubleSupplier y, DoubleSupplier theta, DoubleSupplier precision, Trigger faceForwards) {
     // Use addRequirements() here to declare subsystem dependencies.
     m_drivetrain = drivetrain;
+
+    m_faceForwards = faceForwards;
 
     m_x = x;
     m_y = y;
     m_theta = theta;
     m_precision = precision;
 
-    m_forwards = forwards;
-    m_left = left;
-    m_right = right;
-    m_backwards = backwards;
-
     turnController.enableContinuousInput(-180, 180);
 
-    addRequirements(drivetrain);
+    addRequirements(drivetrain);  
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    m_toAngle = 0;
+  }
+  
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
 
-    // Facing button setup
-    if(m_forwards.getAsBoolean()) {
-      m_toAngle = 0.0;
-      m_PIDcontrol = true;
-    } else if(m_left.getAsBoolean()) {
-      m_toAngle = -90.0;
-      m_PIDcontrol = true;
-    } else if(m_right.getAsBoolean()) {
-      m_toAngle = 90.0;
-      m_PIDcontrol = true;
-    } else if(m_backwards.getAsBoolean()) {
-      m_toAngle = 180.0;
+    if (m_faceForwards.getAsBoolean()) {
       m_PIDcontrol = true;
     } else {
-      m_toAngle = 0.0;
       m_PIDcontrol = false;
     }
 
@@ -102,11 +86,16 @@ public class DriveWithJoysticks extends CommandBase {
       -m_yLimiter.calculate(MathUtil.applyDeadband(m_x.getAsDouble(), kDriveDeadband))
       * kMaxSpeedMetersPerSecond * kSpeedMultiplier * m_precisionFactor;
 
+    if (DriverStation.getAlliance() == Alliance.Blue) {
+      m_ySpeed = -m_ySpeed;
+      m_xSpeed = -m_xSpeed;
+    }
+    
     if(m_PIDcontrol) {
       // PID control
       turnController.setSetpoint(m_toAngle);
       m_thetaSpeed = -turnController.calculate(m_drivetrain.getOdometryYaw());
-      m_thetaSpeed = MathUtil.clamp(m_thetaSpeed, -kMaxSpeedMetersPerSecond * kSpeedMultiplier, kMaxSpeedMetersPerSecond * kSpeedMultiplier);
+      m_thetaSpeed = MathUtil.clamp(m_thetaSpeed, -kMaxAngularSpeedRadiansPerSecond * kSpeedMultiplier, kMaxAngularSpeedRadiansPerSecond * kSpeedMultiplier);
     } else {
       // Joystick control
       m_thetaSpeed =
