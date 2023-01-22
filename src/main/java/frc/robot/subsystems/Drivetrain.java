@@ -64,6 +64,12 @@ public class Drivetrain extends SubsystemBase {
       .setKinematics(m_kinematics);
 
   // public RobotPoseEstimator poseEstimator;
+
+  /** 
+   * Constructor creates 4 objects of the {@link SwerveModule} class. 
+   * The Drivetrain class is responsible for orienting and manipulating them to manuever the robot, 
+   * primarily through this class's drive method 
+   */
   public Drivetrain() {
     teamColor = DriverStation.getAlliance();
     botPoseSub = limelightTable.getDoubleArrayTopic("botpose").subscribe(new double[]{});
@@ -232,7 +238,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void updateOdometryIfTag() {
-    if (getTV() == 1 && getTID() < 9 && limelightTable.getEntry("botpose").getDoubleArray(new double[]{}).length == 6) {
+    if (getTV() == 1 && getTID() < 9 && isDetectingAprilTags()) {
       setOdometry(getRobotPoseFromAprilTag());
     }
   }
@@ -248,6 +254,11 @@ public class Drivetrain extends SubsystemBase {
 
   public double getTX() {
     return limelightTable.getEntry("tx").getDouble(0);
+  }
+
+  public boolean isDetectingAprilTags() {
+    var entry = limelightTable.getEntry("botpose");
+    return entry.getDoubleArray(new double[]{}).length == 6;
   }
 
   public void limelightToTapeMode() {

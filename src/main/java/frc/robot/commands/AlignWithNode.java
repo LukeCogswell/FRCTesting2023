@@ -13,7 +13,6 @@ import static frc.robot.Constants.MeasurementConstants.*;
 import static frc.robot.Constants.SwerveModuleConstants.PID.*;
 
 public class AlignWithNode extends CommandBase {
-  /** Creates a new AlignWithNode. */
   private Drivetrain m_drivetrain;
   private Integer node;
   private double targetYPos;
@@ -21,7 +20,13 @@ public class AlignWithNode extends CommandBase {
   private PIDController xController = new PIDController(kDriveP, kDriveI, kDriveD);
   private PIDController turnController = new PIDController(0.05, kSteerI, kSteerD);
 
-
+  /**
+   * Looks for the nearest node April tag and takes a given node number and drive toward it.
+   * 
+   * @param drivetrain - the current {@link Drivetrain}
+   * @param whichNode - the desired node to travel to. 
+   * Integer values of 1, 2 and 3 are applicable, with 1 and 2 being cone nodes.
+   */
   public AlignWithNode(Drivetrain drivetrain, Integer whichNode) {
     node = whichNode;
     m_drivetrain = drivetrain;
@@ -36,22 +41,28 @@ public class AlignWithNode extends CommandBase {
     if (m_drivetrain.botPoseSub.get().length != 6) {
       System.out.println("STOPPINGGGGGG");
       this.cancel();
-    } else {
+      return;
+    } 
+
     m_drivetrain.updateOdometryIfTag();
     m_drivetrain.limelightToTagMode();
     turnController.enableContinuousInput(-180, 180);
     turnController.setTolerance(2);
     xController.setTolerance(0.1);
     yController.setTolerance(0.1);
-    if (node == 2) {
-      m_drivetrain.limelightToTagMode();
-    } else {
-      m_drivetrain.limelightToTapeMode();
+
+    if (node == 2) m_drivetrain.limelightToTagMode();
+    else m_drivetrain.limelightToTapeMode();
+
+    if (m_drivetrain.getTV() == 0) {
+      this.cancel();
+      return;
     }
-    if (m_drivetrain.getTV() == 1) {
+
     var tagID = m_drivetrain.getTID();
     var tagPose = Constants.AprilTagFieldLayouts.AprilTagList.get(tagID - 1).pose;
-    var offsetY = 0.0;
+    var offsetY = getYOffset();
+
     if (tagID < 5) {
       xController.setSetpoint(14.5);
       turnController.setSetpoint(0);
@@ -72,9 +83,22 @@ public class AlignWithNode extends CommandBase {
       targetYPos = tagPose.getY() - offsetY;
     }
     yController.setSetpoint(targetYPos);
-    } else {
-      this.cancel();
-    }}
+  }
+
+  private double getYOffset() {
+    switch (node) {
+      case 1:
+        return kNodeOffset;
+      
+      case 2:
+        return 0.0;
+
+      case 3:
+        return -kNodeOffset;
+
+      default:
+        return 0.0;
+    }
   }
 
   // Called every time the scheduler runs while the command is scheduled.

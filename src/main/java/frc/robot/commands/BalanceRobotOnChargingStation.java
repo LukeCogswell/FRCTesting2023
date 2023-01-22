@@ -41,10 +41,10 @@ public class BalanceRobotOnChargingStation extends CommandBase {
     roll = MathUtil.clamp(roll, -kSpeedLimit, kSpeedLimit);
     m_swerveDrive.drive(
       pitch,
-      // 0,
       roll,
       0,
-      false);
+      false
+      );
   }
 
   // Called once the command ends or is interrupted.
