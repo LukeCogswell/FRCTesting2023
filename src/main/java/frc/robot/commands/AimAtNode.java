@@ -29,7 +29,7 @@ public class AimAtNode extends CommandBase {
       this.cancel();
     }
     rotController.setSetpoint(0);
-    rotController.setTolerance(1);
+    rotController.setTolerance(2);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -39,7 +39,7 @@ public class AimAtNode extends CommandBase {
     rot = MathUtil.clamp(rot, -0.8, 0.8);
     
     var yDrive = driveController.calculate(m_drivetrain.getTX());
-    yDrive = MathUtil.clamp(rot, -0.4, 0.4);
+    yDrive = MathUtil.clamp(yDrive, -0.2, 0.2);
     
     // m_drivetrain.drive(0, 0, rot);
     m_drivetrain.drive(0, yDrive, 0, true);
@@ -49,6 +49,8 @@ public class AimAtNode extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     m_drivetrain.limelightToTagMode();
+    rotController.close();
+    driveController.close();
   }
 
   // Returns true when the command should end.

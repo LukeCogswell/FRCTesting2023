@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -39,6 +40,17 @@ public class LEDs extends SubsystemBase {
    }
    m_led.setData(m_ledBuffer);
    m_led.start();
+  }
+
+  public void setLEDsWithJoystick(Double r, Double g, Double b) {
+    if (Timer.getFPGATimestamp() % 0.1 < 0.03) {
+
+      for (var i = 0; i< m_ledBuffer.getLength(); i++) {
+        m_ledBuffer.setLED(i, new Color(r / 2 + 0.5, g / 2 + 0.5, b / 2 + 0.5));
+      }
+      m_led.setData(m_ledBuffer);
+      m_led.start();
+    }
   }
 
   public void LEDsOff() {

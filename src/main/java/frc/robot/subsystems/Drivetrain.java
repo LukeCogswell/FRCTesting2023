@@ -50,7 +50,7 @@ public class Drivetrain extends SubsystemBase {
 
   private SwerveDriveOdometry odometer;
   private AHRS navx = new AHRS();
-
+  private Pose2d oldPos = null;
   private PIDController xController;
   private PIDController yController;
   private PIDController thetaController;
@@ -62,6 +62,7 @@ public class Drivetrain extends SubsystemBase {
       Constants.MeasurementConstants.kMaxAccelerationMetersPerSecondSquared / 2)
       // Add kinematics to ensure max speed is actually obeyed
       .setKinematics(m_kinematics);
+
 
   // public RobotPoseEstimator poseEstimator;
 
@@ -224,6 +225,7 @@ public class Drivetrain extends SubsystemBase {
         yController,
         thetaController,
         this::setModuleStates,
+        false,
         this);
     return swerveControllerCommand.andThen(() -> stop());
   }
@@ -239,8 +241,14 @@ public class Drivetrain extends SubsystemBase {
 
   public void updateOdometryIfTag() {
     if (getTV() == 1 && getTID() < 9 && isDetectingAprilTags()) {
-      setOdometry(getRobotPoseFromAprilTag());
+      var newPos = getRobotPoseFromAprilTag();
+      if (oldPos != newPos) {
+        setOdometry(newPos);
+      }
+        
+      oldPos = newPos;
     }
+    
   }
 
   /// **********VISION SECTION *************/

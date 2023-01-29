@@ -61,45 +61,47 @@ public class AlignWithNode extends CommandBase {
 
     var tagID = m_drivetrain.getTID();
     var tagPose = Constants.AprilTagFieldLayouts.AprilTagList.get(tagID - 1).pose;
-    var offsetY = getYOffset();
+    // var offsetY = getYOffset();
+    var offsetY = 0.0;
 
     if (tagID < 5) {
-      xController.setSetpoint(14.5);
+      xController.setSetpoint(15);
       turnController.setSetpoint(0);
       if (node == 1 ) {
-        offsetY -= kNodeOffset; 
+        offsetY = -kNodeOffset; 
       } else if (node == 3) {
-        offsetY += kNodeOffset;
+        offsetY = kNodeOffset;
       }
       targetYPos = tagPose.getY() + offsetY;
     } else {
       xController.setSetpoint(2);
       turnController.setSetpoint(180);
       if (node == 3 ) {
-        offsetY -= kNodeOffset; 
+        offsetY = -kNodeOffset; 
       } else if (node == 1) {
-        offsetY += kNodeOffset;
+        offsetY = kNodeOffset;
       }
       targetYPos = tagPose.getY() - offsetY;
     }
     yController.setSetpoint(targetYPos);
   }
 
-  private double getYOffset() {
-    switch (node) {
-      case 1:
-        return kNodeOffset;
+  // private double getYOffset() {
+  //   switch (node) {
+  //     case 1:
+  //       return kNodeOffset;
       
-      case 2:
-        return 0.0;
+  //     case 2:
+  //       return 0.0;
 
-      case 3:
-        return -kNodeOffset;
+  //     case 3:
+  //       return -kNodeOffset;
 
-      default:
-        return 0.0;
-    }
-  }
+  //     default:
+  //       return 0.0;
+  //   }
+    
+  // }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -108,9 +110,10 @@ public class AlignWithNode extends CommandBase {
     //   m_drivetrain.updateOdometryIfTag();
 
     // }
+    
     var xDrive = xController.calculate(m_drivetrain.getFieldPosition().getX());
     var yDrive = yController.calculate(m_drivetrain.getFieldPosition().getY());
-    var rot = turnController.calculate(m_drivetrain.getFieldPosition().getRotation().getDegrees());
+    var rot = turnController.calculate(m_drivetrain.getFieldPosition().getRotation().getRadians());
     rot = MathUtil.clamp(rot, -1, 1);
     xDrive = MathUtil.clamp(xDrive, -1.4, 1.4);
     yDrive = MathUtil.clamp(yDrive, -1.4, 1.4);
@@ -123,6 +126,9 @@ public class AlignWithNode extends CommandBase {
     if (interrupted) {
       m_drivetrain.limelightToTagMode();
     }
+    turnController.close();
+    yController.close();
+    xController.close();
   }
 
   // Returns true when the command should end.
