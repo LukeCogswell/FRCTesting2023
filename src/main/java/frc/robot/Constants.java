@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.crypto.KeyAgreementSpi;
+
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -55,6 +57,9 @@ public final class Constants {
     public static final double kBackLeftEncoderOffset = 119.62;//122// Must be degrees
     public static final double kFrontRightEncoderOffset = 96.33;//96.5 // Must be degrees
     public static final double kBackRightEncoderOffset = 258.4;//260 // Must be degrees
+
+    public static final double kElbowEncoderOffset = 1.0; // FIND THIS
+    public static final double kShoulderEncoderOffset = 1.0; // FIND THIS
 
     public static final double kMaxSpeedMetersPerSecond = 5880 / 60.0 *
       SwerveModuleConstants.kDriveReduction *
@@ -109,6 +114,22 @@ public final class Constants {
     
   }
 
+  public static final class ArmConstants {
+    public static final double kShoulderMaxAngle = 130; //degrees
+    public static final double kElbowMaxAngle = 315; //degrees
+    public static final double kShoulderMinAngle = 40; //degrees
+    public static final double kElbowMinAngle = 45; //degrees
+    public static final class PID {
+      public static final double kShoulderP = 0.01;
+      public static final double kShoulderI = 0.00;
+      public static final double kShoulderD = 0.00;
+      public static final double kElbowP = 0.01;
+      public static final double kElbowI = 0.00;
+      public static final double kElbowD = 0.00;
+    }
+  }
+
+
   public static final class CANConstants {
     public static final int kFrontLeftDriveMotorID = 1;
     public static final int kBackLeftDriveMotorID = 2;
@@ -124,6 +145,10 @@ public final class Constants {
     public static final int kBackLeftEncoderID = 10;
     public static final int kFrontRightEncoderID = 11;
     public static final int kBackRightEncoderID = 12;
+
+    public static final int kElbowEncoderID = 13;
+    public static final int kShoulderEncoderID = 14;
+
 
     public static final double kEncoderResolution = 4096;
     public static final double kEncoderDistancePerPulse =

@@ -54,21 +54,6 @@ public class RobotContainer {
         )
     );
 
-    m_arm.setDefaultCommand(
-      new FunctionalCommand(
-        () -> {}, 
-        () -> {
-          if (m_operatorStick.getTrigger()) {
-            m_arm.setShoulderMotors(m_operatorStick.getRawAxis(3));
-          }
-          if (m_operatorStick.getRawButton(2)) {
-            m_arm.setElbowMotor(m_operatorStick.getRawAxis(3));
-          }
-        }, interrupted -> {
-          m_arm.setElbowMotor(0.0);
-          m_arm.setShoulderMotors(0.0);},
-           () -> false, m_arm)
-    );
 
     m_LEDs.setDefaultCommand(new RepeatCommand(
       new InstantCommand(() -> 
